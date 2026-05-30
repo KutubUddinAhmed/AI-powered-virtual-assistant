@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIFA Virtual Assistant - Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 50%, #0d1b2a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #8892a4;
+            margin-bottom: 50px;
+            font-size: 1.1rem;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .tier {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .tier-label {
+            position: absolute;
+            top: -12px;
+            left: 30px;
+            background: #0d1b2a;
+            padding: 0 12px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #5a9fd4;
+            font-weight: 600;
+        }
+
+        .tier-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .components {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .component {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .component:hover {
+            border-color: rgba(0, 212, 255, 0.4);
+            background: rgba(0, 212, 255, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.1);
+        }
+
+        .component-icon {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .component-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 6px;
+            color: #ffffff;
+        }
+
+        .component-desc {
+            font-size: 0.85rem;
+            color: #8892a4;
+            line-height: 1.5;
+        }
+
+        .component-tech {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tech-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(123, 47, 247, 0.2);
+            color: #b388ff;
+            border: 1px solid rgba(123, 47, 247, 0.3);
+        }
+
+        .flow-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+        }
+
+        .flow-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .flow-node {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 247, 0.1));
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            min-width: 120px;
+        }
+
+        .flow-node.highlight {
+            border-color: rgba(0, 212, 255, 0.6);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(123, 47, 247, 0.2));
+        }
+
+        .flow-arrow {
+            color: #5a9fd4;
+            font-size: 1.2rem;
+        }
+
+        .connections-section {
+            margin-top: 40px;
+        }
+
+        .connections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .connection-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .connection-card h4 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .connection-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .connection-card li {
+            padding: 6px 0;
+            font-size: 0.85rem;
+            color: #8892a4;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .connection-card li:last-child {
+            border-bottom: none;
+        }
+
+        .connection-card li::before {
+            content: "→ ";
+            color: #5a9fd4;
+        }
+
+        .legend {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #8892a4;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.frontend { background: #00d4ff; }
+        .legend-dot.backend { background: #7b2ff7; }
+        .legend-dot.azure { background: #0078d4; }
+        .legend-dot.external { background: #ff6b6b; }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+            margin: 40px 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .components { grid-template-columns: 1fr; }
+            .flow-diagram { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DIFA Virtual Assistant</h1>
+        <p class="subtitle">System Architecture Overview</p>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot frontend"></div>Frontend</div>
+            <div class="legend-item"><div class="legend-dot backend"></div>Backend</div>
+            <div class="legend-item"><div class="legend-dot azure"></div>Azure Services</div>
+            <div class="legend-item"><div class="legend-dot external"></div>External APIs</div>
+        </div>
+
+        <div class="architecture-grid">
+            <!-- Frontend Tier -->
+            <div class="tier">
+                <span class="tier-label">Presentation Layer</span>
+                <h3 class="tier-title">Frontend (React + TypeScript)</h3>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-icon">💬</div>
+                        <div class="component-name">Chat Interface</div>
+                        <div class="component-desc">AI-powered conversational interface for user queries, with citation support and file uploads.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">React</span>
+                            <span class="tech-tag">TypeScript</span>
+                            <span class="tech-tag">Vite</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🔐</div>
+                        <div class="component-name">Access Management</div>
+                        <div class="component-desc">Role-based access request and management interface for DIFA applications.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">RBAC</span>
+                            <span class="tech-tag">OAuth</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">📋</div>
+                        <div class="component-name">Manage Requests</div>
+                        <div class="component-desc">Approve/reject access requests with approval workflows and status tracking.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Approval Flow</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">📊</div>
+                        <div class="component-name">Request Status</div>
+                        <div class="component-desc">Track status of submitted access requests and provisioning progress.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Status Tracking</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">⚙️</div>
+                        <div class="component-name">Admin Panel</div>
+                        <div class="component-desc">Manage applications, knowledge bases, external sources, and admin users.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">CRUD</span>
+                            <span class="tech-tag">KB Mgmt</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">📈</div>
+                        <div class="component-name">Analytics (Matomo)</div>
+                        <div class="component-desc">User interaction tracking and analytics integration.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Matomo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backend Tier -->
+            <div class="tier">
+                <span class="tier-label">Application Layer</span>
+                <h3 class="tier-title">Backend (Flask / Python)</h3>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-icon">🤖</div>
+                        <div class="component-name">Conversation Driver</div>
+                        <div class="component-desc">Orchestrates AI conversations using Azure OpenAI with RAG-based search over knowledge bases.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Azure OpenAI</span>
+                            <span class="tech-tag">AI Search</span>
+                            <span class="tech-tag">RAG</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🔑</div>
+                        <div class="component-name">Auth Module (GAS OIDC)</div>
+                        <div class="component-desc">OAuth 2.0 / OpenID Connect authentication via GAS with DPoP token binding.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">OAuth 2.0</span>
+                            <span class="tech-tag">OIDC</span>
+                            <span class="tech-tag">DPoP</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">👥</div>
+                        <div class="component-name">Alice API Service</div>
+                        <div class="component-desc">Integration with Alice identity platform for user management, roles, and access provisioning.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">SCIM</span>
+                            <span class="tech-tag">Role Mgmt</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">📁</div>
+                        <div class="component-name">DiFa Project Service</div>
+                        <div class="component-desc">Project provisioning and approver management through the DiFa API.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">REST API</span>
+                            <span class="tech-tag">OAuth</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🔒</div>
+                        <div class="component-name">User Crypto</div>
+                        <div class="component-desc">AES encryption/decryption for sensitive user data (short IDs, emails, names).</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">AES</span>
+                            <span class="tech-tag">Encryption</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">📧</div>
+                        <div class="component-name">Email Service</div>
+                        <div class="component-desc">Notification emails for access requests, approvals, and missing project TPL alerts.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">SMTP</span>
+                            <span class="tech-tag">Notifications</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data & Cloud Tier -->
+            <div class="tier">
+                <span class="tier-label">Data & Cloud Layer</span>
+                <h3 class="tier-title">Azure Services</h3>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-icon">🗄️</div>
+                        <div class="component-name">Azure Cosmos DB</div>
+                        <div class="component-desc">Multi-container NoSQL database for conversations, applications, user access, requests, and projects.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Conversations</span>
+                            <span class="tech-tag">Applications</span>
+                            <span class="tech-tag">User Access</span>
+                            <span class="tech-tag">Requests</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🔍</div>
+                        <div class="component-name">Azure AI Search</div>
+                        <div class="component-desc">Vector and keyword search over indexed knowledge base documents for RAG retrieval.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Vector Search</span>
+                            <span class="tech-tag">Indexing</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🧠</div>
+                        <div class="component-name">Azure OpenAI</div>
+                        <div class="component-desc">GPT model deployment for conversational AI, embeddings, and text analytics.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">GPT</span>
+                            <span class="tech-tag">Embeddings</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">📦</div>
+                        <div class="component-name">Azure Blob Storage</div>
+                        <div class="component-desc">Document and file storage for knowledge base content and user uploads.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Blob</span>
+                            <span class="tech-tag">SAS Tokens</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">📝</div>
+                        <div class="component-name">Azure Text Analytics</div>
+                        <div class="component-desc">Language detection and text analysis for multilingual support.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">NLP</span>
+                            <span class="tech-tag">Language Detection</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🌐</div>
+                        <div class="component-name">Azure App Service</div>
+                        <div class="component-desc">Hosting platform running Gunicorn with Flask backend and static frontend build.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Gunicorn</span>
+                            <span class="tech-tag">Linux</span>
+                            <span class="tech-tag">B3 SKU</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- External Integrations -->
+            <div class="tier">
+                <span class="tier-label">External Integrations</span>
+                <h3 class="tier-title">Third-Party Systems</h3>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-icon">🎫</div>
+                        <div class="component-name">ServiceNow</div>
+                        <div class="component-desc">Ticket creation for support requests that cannot be resolved by the virtual assistant.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">SNOW API</span>
+                            <span class="tech-tag">Tickets</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🪪</div>
+                        <div class="component-name">Alice Identity Platform</div>
+                        <div class="component-desc">Enterprise identity management for user provisioning, role assignment, and access governance.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">Core API</span>
+                            <span class="tech-tag">Access API</span>
+                            <span class="tech-tag">SCIM</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🏗️</div>
+                        <div class="component-name">DiFa Project API</div>
+                        <div class="component-desc">Project lifecycle management and approver lookup for provisioning workflows.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">REST</span>
+                            <span class="tech-tag">OAuth Client Credentials</span>
+                        </div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">🔐</div>
+                        <div class="component-name">GAS (Auth Provider)</div>
+                        <div class="component-desc">Mercedes-Benz Global Authentication Service for enterprise SSO.</div>
+                        <div class="component-tech">
+                            <span class="tech-tag">OIDC</span>
+                            <span class="tech-tag">SSO</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Data Flow -->
+        <div class="flow-section">
+            <h3 class="flow-title">Chat Flow (RAG Pipeline)</h3>
+            <div class="flow-diagram">
+                <div class="flow-node">User Query</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node">Flask Backend</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node highlight">Azure AI Search</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node highlight">Azure OpenAI (GPT)</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node">Response + Citations</div>
+            </div>
+        </div>
+
+        <div class="flow-section">
+            <h3 class="flow-title">Access Request Flow</h3>
+            <div class="flow-diagram">
+                <div class="flow-node">User Request</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node">Flask API</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node highlight">Alice API (Roles)</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node">Cosmos DB (Track)</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node highlight">Approver Notification</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node">Provisioned</div>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Data Stores -->
+        <div class="connections-section">
+            <h3 class="flow-title" style="margin-bottom: 20px;">Cosmos DB Containers</h3>
+            <div class="connections-grid">
+                <div class="connection-card">
+                    <h4>Conversation Data</h4>
+                    <ul>
+                        <li>Conversations (chat history)</li>
+                        <li>User consent records</li>
+                        <li>Message feedback</li>
+                    </ul>
+                </div>
+                <div class="connection-card">
+                    <h4>Application Data</h4>
+                    <ul>
+                        <li>Applications catalog</li>
+                        <li>Application documents</li>
+                        <li>DiFa projects</li>
+                    </ul>
+                </div>
+                <div class="connection-card">
+                    <h4>Access & Requests</h4>
+                    <ul>
+                        <li>Alice access requests</li>
+                        <li>ServiceNow requests</li>
+                        <li>User access records</li>
+                        <li>Missing TPL notifications</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Security -->
+        <div class="connections-section">
+            <h3 class="flow-title" style="margin-bottom: 20px;">Security Architecture</h3>
+            <div class="connections-grid">
+                <div class="connection-card">
+                    <h4>Authentication</h4>
+                    <ul>
+                        <li>GAS OIDC (enterprise SSO)</li>
+                        <li>OAuth 2.0 with DPoP token binding</li>
+                        <li>Flask session management</li>
+                        <li>JWT token validation</li>
+                    </ul>
+                </div>
+                <div class="connection-card">
+                    <h4>Data Protection</h4>
+                    <ul>
+                        <li>AES encryption for PII (emails, IDs, names)</li>
+                        <li>TLS/SSL (cert.pem + key.pem)</li>
+                        <li>Azure DefaultAzureCredential</li>
+                        <li>Secret rotation via environment variables</li>
+                    </ul>
+                </div>
+                <div class="connection-card">
+                    <h4>Access Control</h4>
+                    <ul>
+                        <li>Role-based access (Alice RBAC)</li>
+                        <li>Category-based permissions</li>
+                        <li>Admin/approver hierarchies</li>
+                        <li>Request approval workflows</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Tech Stack Summary -->
+        <div class="flow-section">
+            <h3 class="flow-title">Technology Stack</h3>
+            <div class="components" style="margin-top: 15px;">
+                <div class="connection-card">
+                    <h4>Frontend</h4>
+                    <ul>
+                        <li>React 18 + TypeScript</li>
+                        <li>Vite (build tool)</li>
+                        <li>CSS Modules</li>
+                        <li>i18n (internationalization)</li>
+                        <li>Context API (state management)</li>
+                    </ul>
+                </div>
+                <div class="connection-card">
+                    <h4>Backend</h4>
+                    <ul>
+                        <li>Python / Flask</li>
+                        <li>Gunicorn (WSGI server)</li>
+                        <li>Authlib (OAuth/OIDC)</li>
+                        <li>PyCryptodome (AES)</li>
+                        <li>Azure SDKs</li>
+                    </ul>
+                </div>
+                <div class="connection-card">
+                    <h4>Infrastructure</h4>
+                    <ul>
+                        <li>Azure App Service (Linux)</li>
+                        <li>ARM deployment templates</li>
+                        <li>Application Insights</li>
+                        <li>Azure Key Vault (secrets)</li>
+                    </ul>
+                </div>
+                <div class="connection-card">
+                    <h4>AI / ML</h4>
+                    <ul>
+                        <li>Azure OpenAI (GPT models)</li>
+                        <li>Azure AI Search (RAG)</li>
+                        <li>Azure Text Analytics</li>
+                        <li>langid (language detection)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <p style="text-align: center; color: #5a6a7a; margin-top: 40px; font-size: 0.8rem;">
+            DIFA Virtual Assistant &mdash; Mercedes-Benz AG &mdash; Architecture Document
+        </p>
+    </div>
+</body>
+</html>
